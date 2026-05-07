@@ -1,0 +1,15 @@
+# Ignore personal notes
+**/PRIVATE.md
+**/TODO.md
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
