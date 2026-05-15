@@ -1,0 +1,101 @@
+# ==========================================
+# Standard Vite Frontend Dockerfile Template
+# ==========================================
+#
+# IMPORTANT: This template ensures build-time environment variables
+# are properly injected for production deployments.
+#
+# Usage:
+#   docker build -t myapp:latest \
+#     --build-arg VITE_API_URL=https://api.myapp.com \
+#     --build-arg VITE_WS_URL=wss://api.myapp.com \
+#     -f Dockerfile .
+#
+# WARNING: Do NOT rely on runtime environment variables for Vite.
+# Vite embeds import.meta.env.VITE_* at BUILD TIME, not runtime.
+# ==========================================
+
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+# Install pnpm (if using pnpm)
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# === ENVIRONMENT VARIABLES ===
+# Define all VITE_* variables your app uses as build arguments
+# Provide sensible defaults for local development
+ARG VITE_API_URL=http://localhost:8000/api
+ARG VITE_WS_URL=localhost:8000
+ARG VITE_APP_NAME=MyApp
+ARG VITE_ENVIRONMENT=production
+
+# Add any other VITE_* variables your app needs:
+# ARG VITE_STRIPE_PUBLISHABLE_KEY
+# ARG VITE_GOOGLE_CLIENT_ID
+# ARG VITE_SENTRY_DSN
+# ARG VITE_ANALYTICS_ID
+
+# Convert ARG to ENV so Vite can see them during build
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_APP_NAME=$VITE_APP_NAME
+ENV VITE_ENVIRONMENT=$VITE_ENVIRONMENT
+
+# Convert any other VITE_* variables:
+# ENV VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY
+# ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+# ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+# ENV VITE_ANALYTICS_ID=$VITE_ANALYTICS_ID
+
+# === DEPENDENCY INSTALLATION ===
+# For monorepo (adjust paths as needed):
+# COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+# COPY packages/ packages/
+# COPY apps/my-app/package.json apps/my-app/
+# RUN pnpm install --filter @myorg/my-app... --frozen-lockfile
+
+# For standalone app:
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# === BUILD APPLICATION ===
+COPY . .
+RUN npm run build
+# For monorepo: RUN pnpm --filter @myorg/my-app build
+
+# === VERIFICATION (Optional but recommended) ===
+# Verify that production API URLs are in the bundle
+RUN echo "Verifying build output..." && \
+    if grep -r "localhost:8000" dist/ 2>/dev/null | grep -v ".map"; then \
+        echo "ERROR: localhost found in production build!" && \
+        echo "This means VITE_API_URL was not properly set during build." && \
+        exit 1; \
+    fi && \
+    echo "Build verification passed."
+
+# Stage 2: Production (Nginx)
+FROM nginx:1.25-alpine
+
+# Copy custom nginx config for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy built assets from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Add metadata labels
+LABEL maintainer="your-email@example.com"
+LABEL app.name="my-app"
+LABEL app.type="frontend"
+LABEL app.framework="vite"
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1/ || exit 1
+
+# Run nginx
+CMD ["nginx", "-g", "daemon off;"]
