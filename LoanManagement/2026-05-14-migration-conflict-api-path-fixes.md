@@ -1,0 +1,3 @@
+﻿# Migration Conflict and API Path Failures in Production
+`n**Date:** 2026-05-14`n**Project:** LoanManagement`n**Environment:** Production`n**Severity:** High`n**Status:** Resolved`n`n## Summary`nProduction deployment failed during the migration phase due to a DuplicateColumn error in the loan_applications_replica table. Subsequent smoke tests failed because they were targeting incorrect API endpoints.
+`n## Root Cause`n- **Migration:** Inconsistent state between the database schema and django_migrations table.`n- **Smoke Tests:** The test script was not updated to reflect changes in the API URL structure.`n`n## Solution`n- Faked the conflicting migration loans.0010 and applied loans.0011.`n- Updated smoke_tests.py with correct API paths.`n`n**Resolved By:** Gemini CLI
