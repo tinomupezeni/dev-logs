@@ -21,6 +21,7 @@ dev-logs/
 
 ## Projects Tracked
 
+- [Shipwright](./shipwright/) - DevOps deployment automation tool
 - [CRM Professional](./CRM/)
 - [SMEPULSE](./SMEPULSE/) (coming soon)
 - [HBEC](./HBEC/) (coming soon)
@@ -61,4 +62,4 @@ C:\Users\Dell\Documents\projects\dev-logs\log-issue.ps1 -Project CRM -Title "ngi
 
 ---
 
-**Last Updated:** 2026-05-07
+**Last Updated:** 2026-05-17
