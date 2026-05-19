@@ -51,6 +51,14 @@ This document was created after resolving critical production issues in the Tese
    - Verify each domain serves the correct application
    - Test with actual HTTP requests, not just assumptions
 
+6. **Never use ambiguous identifiers for Foreign Keys**
+   - In distributed systems (like Shipwright), use UUIDs for relationships
+   - Human-readable names are for display/logging ONLY
+
+7. **Never use unescaped complex commands in SSH/PowerShell**
+   - PowerShell interpretation of backslashes can break remote execution
+   - Always use simple quoting or Here-Strings for remote scripts
+
 ### ✅ ALWAYS Do These
 
 1. **Always use build arguments for Vite environment variables**
@@ -556,6 +564,18 @@ For each Vite/React/Vue frontend:
 
 **Solution:** Always pass production URLs as build arguments, verify bundle before deploying.
 
+### Pitfall 6: "NameError: Depends is not defined"
+
+**Problem:** Copy-pasting code or missing imports in API entry points.
+
+**Solution:** Use `ruff check` locally and include mandatory `Deep Health Check` imports.
+
+### Pitfall 7: "PowerShell remote script execution fails with syntax error"
+
+**Problem:** Broken shell escaping when passing complex strings to SSH.
+
+**Solution:** Use single quotes for the remote command and Here-Strings for PowerShell variables.
+
 ---
 
 ## Emergency Response
@@ -616,6 +636,7 @@ docker exec frontend-container sh -c 'cat /usr/share/nginx/html/assets/*.js | gr
 
 | Date       | Change                                                    |
 |------------|-----------------------------------------------------------|
+| 2026-05-17 | Added Shell Escaping and Distributed Type Awareness rules  |
 | 2026-05-15 | Initial version based on Tese Marketplace incident        |
 | 2026-05-15 | Added Vite environment variable standards                 |
 | 2026-05-15 | Added verification script and templates                   |
